@@ -1,5 +1,10 @@
 package net.kdt.pojavlaunch;
 
+import android.app.Activity;
+import org.libsdl.app.SDLActivity;
+import org.libsdl.app.SDLSurface;
+import com.movtery.zalithlauncher.game.sdl.SdlBridge;
+
 import static net.kdt.pojavlaunch.MainActivity.touchCharInput;
 import static org.lwjgl.glfw.CallbackBridge.sendMouseButton;
 import static org.lwjgl.glfw.CallbackBridge.windowHeight;
@@ -118,13 +123,17 @@ public class MinecraftGLSurface extends View implements GrabListener {
                 private boolean isCalled = isAlreadyRunning;
                 @Override
                 public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                    Surface surface = holder.getSurface();
+                    if (getContext() instanceof Activity) {
+                        SdlBridge.prepareSurface((Activity) getContext(), surface, (ViewGroup) getParent(), holder);
+                    }
                     if(isCalled) {
-                        JREUtils.setupBridgeWindow(surfaceView.getHolder().getSurface());
+                        JREUtils.setupBridgeWindow(surface);
                         return;
                     }
                     isCalled = true;
 
-                    realStart(surfaceView.getHolder().getSurface());
+                    realStart(surface);
                 }
 
                 @Override
@@ -133,7 +142,17 @@ public class MinecraftGLSurface extends View implements GrabListener {
                 }
 
                 @Override
-                public void surfaceDestroyed(@NonNull SurfaceHolder holder) {}
+                public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                    Surface surface = holder.getSurface();
+                    if (SdlBridge.beginSurfaceDestroy(holder, surface)) {
+                        if (SdlBridge.getSdlEnabled()) {
+                            if (SDLActivity.getSDLSurface() != null) {
+                                SDLActivity.getSDLSurface().surfaceDestroyed(holder);
+                            }
+                        }
+                        SdlBridge.unregisterSurface(surface);
+                    }
+                }
             });
 
             ((ViewGroup)getParent()).addView(surfaceView);
@@ -148,6 +167,9 @@ public class MinecraftGLSurface extends View implements GrabListener {
                 @Override
                 public void onSurfaceTextureAvailable(@NonNull SurfaceTexture surface, int width, int height) {
                     Surface tSurface = new Surface(surface);
+                    if (getContext() instanceof Activity) {
+                        SdlBridge.prepareSurface((Activity) getContext(), tSurface, (ViewGroup) getParent(), surface);
+                    }
                     if(isCalled) {
                         JREUtils.setupBridgeWindow(tSurface);
                         return;
@@ -164,6 +186,15 @@ public class MinecraftGLSurface extends View implements GrabListener {
 
                 @Override
                 public boolean onSurfaceTextureDestroyed(@NonNull SurfaceTexture surface) {
+                    Surface nativeSurface = SDLSurface.getNativeSurface();
+                    if (SdlBridge.beginSurfaceDestroy(surface, nativeSurface)) {
+                        if (SdlBridge.getSdlEnabled()) {
+                            if (SDLActivity.getSDLSurface() != null) {
+                                SDLActivity.getSDLSurface().surfaceDestroyed();
+                            }
+                        }
+                        SdlBridge.unregisterSurface(nativeSurface);
+                    }
                     return true;
                 }
 
