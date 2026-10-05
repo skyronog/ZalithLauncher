@@ -58,6 +58,11 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         checkStoragePermissions();
 
+        if (!(this instanceof net.kdt.pojavlaunch.MainActivity)) {
+            Renderers.INSTANCE.init(true);
+            PluginLoader.loadAllPlugins(this, true);
+        }
+
         AccountsManager.INSTANCE.reload();
     }
 

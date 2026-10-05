@@ -10,10 +10,10 @@ plugins {
 apply(plugin = "stringfog")
 
 val getCFApiKey = {
-    System.getenv("CURSEFORGE_API_KEY") ?: run {
+    System.getenv("CURSEFORGE_API_KEY")?.trim()?.takeIf { it.isNotEmpty() } ?: run {
         val curseforgeKeyFile = File(rootDir, "curseforge_key.txt")
         if (curseforgeKeyFile.canRead() && curseforgeKeyFile.isFile) {
-            curseforgeKeyFile.readText()
+            curseforgeKeyFile.readText().trim()
         } else {
             logger.warn("BUILD: You have no CurseForge key, the curseforge api will get disabled !")
             "DUMMY"

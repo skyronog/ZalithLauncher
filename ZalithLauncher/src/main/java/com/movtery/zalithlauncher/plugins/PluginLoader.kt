@@ -29,13 +29,7 @@ object PluginLoader {
         DriverPluginManager.initDriver(context, force)
         if (force) RendererPluginManager.clearPlugin()
 
-        val queryIntentActivities =
-            context.packageManager.queryIntentActivities(
-                Intent("android.intent.action.MAIN"),
-                PACKAGE_FLAGS
-            )
-        queryIntentActivities.forEach {
-            val applicationInfo = it.activityInfo.applicationInfo
+        context.packageManager.getInstalledApplications(PACKAGE_FLAGS).forEach { applicationInfo ->
             DriverPluginManager.parsePlugin(applicationInfo)
             RendererPluginManager.parseApkPlugin(context, applicationInfo)
         }
