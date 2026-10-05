@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Build
 import android.widget.Toast
+import java.io.File
 import androidx.appcompat.app.AppCompatActivity
 import com.kdt.mcgui.ProgressLayout
 import com.movtery.zalithlauncher.R
@@ -227,6 +228,8 @@ class LaunchGame {
             val versionInfo = Tools.getVersionInfo(minecraftVersion)
             val gameDirPath = minecraftVersion.getGameDir()
 
+            applyGraphicsBackendOverride(minecraftVersion.getVersionName(), gameDirPath)
+
             //预处理
             Tools.disableSplash(gameDirPath)
             val launchClassPath = Tools.generateLaunchClassPath(versionInfo, minecraftVersion)
@@ -272,6 +275,26 @@ class LaunchGame {
                 // actually launching the game, thus giving us the opportunity
                 // to start after the activity is shown again
             }
+        }
+
+        private fun applyGraphicsBackendOverride(versionName: String, gameDir: File) {
+            if (!Regex("""^26\.(2|[3-9]|\d{2,}).*""").matches(versionName)) return
+            val backend = when {
+                AllSettings.useOpenGLForMinecraft26.getValue() -> "opengl"
+                AllSettings.zinkPreferSystemDriver.getValue() -> "vulkan"
+                else -> return
+            }
+            val f = File(gameDir, "options.txt")
+            val line = "preferredGraphicsBackend:\"$backend\""
+            val old = if (f.exists()) runCatching { f.readText() }.getOrDefault("") else ""
+            val re = Regex("(?m)^preferredGraphicsBackend:.*$")
+            val new = when {
+                re.containsMatchIn(old) -> old.replace(re, line)
+                old.isEmpty() || old.endsWith("\n") -> old + line + "\n"
+                else -> old + "\n" + line + "\n"
+            }
+            f.parentFile?.mkdirs()
+            runCatching { f.writeText(new) }
         }
     }
 }

@@ -43,6 +43,9 @@ class AllSettings {
         @JvmStatic
         val zinkPreferSystemDriver = BooleanSettingUnit("zinkPreferSystemDriver", false)
 
+        @JvmStatic
+        val useOpenGLForMinecraft26 = BooleanSettingUnit("useOpenGLForMinecraft26", false)
+
         // Control
         @JvmStatic
         val disableGestures = BooleanSettingUnit("disableGestures", false)

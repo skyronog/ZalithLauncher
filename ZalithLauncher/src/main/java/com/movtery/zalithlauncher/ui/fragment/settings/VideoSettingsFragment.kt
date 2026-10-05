@@ -214,6 +214,13 @@ class VideoSettingsFragment : AbstractSettingsFragment(R.layout.settings_fragmen
             binding.zinkPreferSystemDriverLayout,
             binding.zinkPreferSystemDriver
         )
+
+        SwitchSettingsWrapper(
+            context,
+            AllSettings.useOpenGLForMinecraft26,
+            binding.useOpenGL26Layout,
+            binding.useOpenGL26
+        )
         if (!Tools.checkVulkanSupport(context.packageManager)) {
             zinkPreferSystemDriver.setGone()
         } else {
