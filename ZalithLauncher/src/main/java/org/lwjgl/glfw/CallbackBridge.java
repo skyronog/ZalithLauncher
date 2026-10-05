@@ -270,4 +270,20 @@ public class CallbackBridge {
     
     public static volatile int windowWidth, windowHeight;
 
+    public static boolean sGamepadDirectInput = false;
+    private static java.lang.ref.WeakReference<com.movtery.zalithlauncher.game.sdl.DirectGamepadEnableHandler> sDirectGamepadEnableHandler;
+    private static int sMouseButtonState = 0;
+    public static float deltaX = 0f, deltaY = 0f;
+
+    public static void setDirectGamepadEnableHandler(com.movtery.zalithlauncher.game.sdl.DirectGamepadEnableHandler handler) {
+        sDirectGamepadEnableHandler = new java.lang.ref.WeakReference<>(handler);
+    }
+
+    public static void clearSdlBridgeState() {
+        sGamepadDirectInput = false;
+        sDirectGamepadEnableHandler = null;
+        sMouseButtonState = 0;
+        deltaX = 0f;
+        deltaY = 0f;
+    }
 }
