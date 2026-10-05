@@ -213,4 +213,60 @@ public class CallbackBridge {
         System.loadLibrary("pojavexec");
     }
 }
+    @Keep
+    public static boolean notifyLauncher(int type, int... action) {
+        if (action == null || action.length == 0) {
+            LoggerBridge.append("ZalithLauncher: SDL notification has no action");
+            return false;
+        }
+        switch (type) {
+            case NOTIF_TYPE_SDL:
+                if (action[0] == ACTION_INIT_LAUNCHER_INTEGRATION) {
+                    if (!SdlBridge.markSdlInitialized()) {
+                        return true;
+                    }
+                    try {
+                        LoggerBridge.append("ZalithLauncher: loading SDL3");
+                        System.loadLibrary("SDL3");
+                        LoggerBridge.append("ZalithLauncher: loading SDL2");
+                        System.loadLibrary("SDL2");
+                        LoggerBridge.append("ZalithLauncher: setting up SDL JNI");
+                        SdlBridge.setupJNI();
+                        LoggerBridge.append("ZalithLauncher: binding SDL surface");
+                        SdlBridge.setSdlEnabled(true);
+                        SDLSurface surface = SDLActivity.getSDLSurface();
+                        if (surface != null) {
+                            surface.surfaceChanged();
+                            if (windowWidth > 0 && windowHeight > 0) {
+                                surface.nativeResize(windowWidth, windowHeight);
+                            }
+                        }
+                        LoggerBridge.append("ZalithLauncher: SDL support enabled!");
+                        return true;
+                    } catch (Throwable e) {
+                        SdlBridge.setSdlEnabled(false);
+                        SdlBridge.clearSdlInitialized();
+                        StringWriter trace = new StringWriter();
+                        e.printStackTrace(new PrintWriter(trace));
+                        LoggerBridge.append("ZalithLauncher: SDL launcher integration is unavailable:\n" + trace);
+                    }
+                }
+                if (action[0] == ACTION_SEND_TEXTBOX_RECT) {
+                    // TODO: 输入框位置同步（后续接入）
+                }
+        }
+        return false;
+    }
+
+    /**
+     * org.lwjgl.sdl.SDLInit（LWJGL 3.4.1 的 SDL Java 绑定）调用的入口，转发到 {@link #notifyLauncher}。
+     * 注意：LWJGL 组件内声明为 native，运行时以本实现为准（避免依赖额外 C 符号）。
+     */
+    @SuppressWarnings("unused")
+    @Keep
+    public static void nativeNotifyLauncher(int type, int... action) {
+        notifyLauncher(type, action);
+    }
+    
+    public static volatile int windowWidth, windowHeight;
 
