@@ -88,10 +88,10 @@ jobs:
       - name: Build Debug ${{matrix.arch}}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assembleDebug -Darch=${{ matrix.arch }}
+          ./gradlew ZalithLauncher:assemblerelease -Darch=${{ matrix.arch }}
 
       - name: Upload Debug ${{matrix.arch}}
         uses: actions/upload-artifact@v4
         with:
           name: ZalithLauncher(Debug) ${{ matrix.arch }}
-          path: ZalithLauncher/build/outputs/apk/debug/*
+          path: ZalithLauncher/build/outputs/apk/release/*
