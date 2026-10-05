@@ -171,3 +171,30 @@ JNIEXPORT jint JNICALL Java_net_kdt_pojavlaunch_utils_JREUtils_executeForkedBina
 }
 */
 
+
+JNIEnv* get_attached_env(JavaVM* jvm) {
+    JNIEnv* env = NULL;
+    jint r = (*jvm)->GetEnv(jvm, (void**)&env, JNI_VERSION_1_4);
+    if (r == JNI_EDETACHED) { if ((*jvm)->AttachCurrentThread(jvm, &env, NULL) != JNI_OK) return NULL; }
+    else if (r != JNI_OK) return NULL;
+    return env;
+}
+
+jintArray convertIntArrayJVM(JNIEnv* srcEnv, JNIEnv* dstEnv, jintArray src) {
+    if (!src) return NULL;
+    jsize len = (*srcEnv)->GetArrayLength(srcEnv, src);
+    jint* el = (*srcEnv)->GetIntArrayElements(srcEnv, src, NULL);
+    jintArray dst = (*dstEnv)->NewIntArray(dstEnv, len);
+    (*dstEnv)->SetIntArrayRegion(dstEnv, dst, 0, len, el);
+    (*srcEnv)->ReleaseIntArrayElements(srcEnv, src, el, JNI_ABORT);
+    return dst;
+}
+
+bool notifyLauncher(JNIEnv *dvm_env, int type, int actions[], int len) {
+    jintArray arr = (*dvm_env)->NewIntArray(dvm_env, len);
+    (*dvm_env)->SetIntArrayRegion(dvm_env, arr, 0, len, (const jint*)actions);
+    jboolean r = (*dvm_env)->CallStaticBooleanMethod(dvm_env, pojav_environ->bridgeClazz, pojav_environ->method_notifyLauncher, type, arr);
+    if ((*dvm_env)->ExceptionCheck(dvm_env)) { (*dvm_env)->ExceptionDescribe(dvm_env); (*dvm_env)->ExceptionClear(dvm_env); r = JNI_FALSE; }
+    (*dvm_env)->DeleteLocalRef(dvm_env, arr);
+    return r;
+}

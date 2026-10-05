@@ -15,3 +15,22 @@ void hookExec();
 void installLwjglDlopenHook();
 void installEMUIIteratorMititgation();
 JNIEXPORT jstring JNICALL Java_org_lwjgl_glfw_CallbackBridge_nativeClipboard(JNIEnv* env, jclass clazz, jint action, jbyteArray copySrc);
+#include <stdio.h>
+#include <dlfcn.h>
+#include <jni.h>
+#include "environ/environ.h"
+#include "logger/logger.h"
+#define NOTIF_TYPE_SDL 0
+#define ACTION_INIT_LAUNCHER_INTEGRATION 0
+#define ACTION_SEND_TEXTBOX_RECT 1
+#define DECL_DLSYM(fn) typedef typeof(&fn) fn##_t;
+#define SET_DLSYM_PTR(handle, fn) \
+    fn##_t fn##_p; \
+    do { dlerror(); void *_p = dlsym((handle), #fn); const char *_e = dlerror(); \
+        if (_e || !_p) { LOG_TO_E("<%s> %s", "Native", "dlsym(" #fn ") failed"); } \
+        fn##_p = (fn##_t)_p; } while (0)
+#define TRY_ATTACH_ENV(env_name, vm, error_message, then) JNIEnv* env_name; \
+do { env_name = get_attached_env(vm); if(env_name == NULL) { printf(error_message); then } } while(0)
+jintArray convertIntArrayJVM(JNIEnv* srcEnv, JNIEnv* dstEnv, jintArray srcIntArray);
+JNIEnv* get_attached_env(JavaVM* jvm);
+bool notifyLauncher(JNIEnv *dvm_env, int type, int actions[], int len);
