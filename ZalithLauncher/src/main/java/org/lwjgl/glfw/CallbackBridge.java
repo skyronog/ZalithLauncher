@@ -270,3 +270,4 @@ public class CallbackBridge {
     
     public static volatile int windowWidth, windowHeight;
 
+}
